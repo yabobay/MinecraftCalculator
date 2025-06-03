@@ -7,10 +7,12 @@ A Minecraft Java Edition server plugin that lets you use a calculator in-game to
 ## Building ##
 
 Dependencies:
-  * Java 8 or newer
-  * Maven
+* Java 8 or newer
+* Maven
 
-    mvn package
+```
+mvn package
+```
 
 Then you will find two jars in `target/`, one with dependencies bundled and one without.
 
