@@ -1,8 +1,6 @@
 package MinecraftCalculator;
 
 object Math {
-    val roundPlaces = 5;
-
     def apply(math: String): String =
         Math(Tokenizer(math), false).toString
 
