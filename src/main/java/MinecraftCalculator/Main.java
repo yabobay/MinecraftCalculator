@@ -21,6 +21,10 @@ public final class Main extends JavaPlugin {
     }
 
     String eval(String math) {
-	return Math.apply(math);
+	try {
+	    return Math.apply(math);
+	} catch (Math.SyntaxError e) {
+	    return "error: " + e;
+	}
     }
 }

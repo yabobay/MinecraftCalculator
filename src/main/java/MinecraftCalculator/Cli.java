@@ -1,7 +1,7 @@
 package MinecraftCalculator;
 
 public class Cli {
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Math.SyntaxError {
 	if (args.length == 0) {
 	    System.out.println("Please give input");
 	    System.exit(0);
