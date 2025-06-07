@@ -7,7 +7,7 @@ import java.math.MathContext
 
 // mildly cursed
 
-private sealed trait Expression {
+protected sealed trait Expression {
     val value: Any
     def crunch: Expression = this
     override def toString: String = value.toString
@@ -15,13 +15,13 @@ private sealed trait Expression {
         s"$left$s$right"
 }
 
-private class Number(val value: BigDecimal) extends Expression
+protected case class Number(val value: BigDecimal) extends Expression
 
-private class Operator(val value: String) extends Expression
+protected case class Operator(val value: String) extends Expression
 
-private class Punct(val value: String) extends Expression
+protected case class Punct(val value: String) extends Expression
 
-private class Operation(val value: (Operator, Expression, Expression)) extends Expression {
+protected case class Operation(val value: (Operator, Expression, Expression)) extends Expression {
     override def crunch = {
         val left = value._2.crunch.asInstanceOf[Number].value
         val right = value._3.crunch.asInstanceOf[Number].value
@@ -31,16 +31,20 @@ private class Operation(val value: (Operator, Expression, Expression)) extends E
             case "/" => left / right
             case "+" => left + right
             case "-" => left - right
-            case _ => 1238192 // todo throw
+            case _ => throw new Math.StrangeOperator(value._1)
         })
     }
     override def toString = value._2.value + value._1.value + value._3.value
 }
 
-private class Paren(val value: Seq[Expression], val dbg: Boolean = false) extends Expression {
+protected case class Paren(val value: Seq[Expression], val dbg: Boolean = false) extends Expression {
     override def crunch: Expression = {
         if (dbg)
             println(this)
+        for (window <- value.sliding(2))
+            for (clazz <- List("Operator", "Number").map(i => Class.forName("MinecraftCalculator." + i)))
+                if (window.forall(clazz.isInstance(_)))
+                    throw new Math.TwoInARow(clazz, window(0), window(1))
         if (value.length == 1)
             value(0)
         else
@@ -87,7 +91,15 @@ private class Paren(val value: Seq[Expression], val dbg: Boolean = false) extend
             case op :: rest => {
                 exps.indexWhere(e => e.isInstanceOf[Operator] && e.value == op) match {
                     case i if i != -1 => {
-                        val op = new Operation((exps(i).asInstanceOf[Operator], exps(i-1), exps(i+1)))
+                        val bef = try exps(i-1) catch {
+                            case _: ArrayIndexOutOfBoundsException => throw new Math.ExpectedOperand("before", exps(i))
+                        }
+                        val aft = try exps(i+1) catch {
+                            case _: IndexOutOfBoundsException => throw new Math.ExpectedOperand("after", exps(i))
+                        }
+                        println(bef)
+                        println(aft)
+                        val op = new Operation((exps(i).asInstanceOf[Operator], bef, aft))
                         Some(new Paren(exps.patch(i-1, List(op.crunch), 3), dbg))
                     }
                     case -1 => findOperator(rest)
